@@ -1,0 +1,7 @@
+scripts
+src
+meta-client.json
+eslint.config.js
+.prettier*
+.vscode
+.zed

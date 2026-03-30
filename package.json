@@ -1,0 +1,30 @@
+{
+  "name": "wiki-security-social",
+  "version": "0.0.1",
+  "description": "Social Authentication Security plugin for Federated Wiki.",
+  "license": "MIT",
+  "author": "Paul Rodwell <paul.rodwell@btinternet.com>",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run test; npm run build:client; npm run build:dialog; npm run build:server",
+    "build:client": "npm run clean:client; node scripts/build-client.js",
+    "build:dialog": "npm run clean:dialog; node scripts/build-dialog.js",
+    "build:server": "npm run clean:server; node scripts/build-server.js",
+    "clean": "npm run clean:client; npm run clean:server",
+    "clean:client": "rm client/security.js client/security.js.map",
+    "clean:dialog": "rm client/auth-dialog.js client/auth-dialog.js.map",
+    "clean:server": "rm server/social.js server/social.js.map",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.27.3",
+    "eslint": "^10.0.3",
+    "grunt-git-authors": "^3.2.0",
+    "prettier": "^3.8.1"
+  },
+  "dependencies": {
+    "better-auth": "^1.5.5"
+  }
+}
