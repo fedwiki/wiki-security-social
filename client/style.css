@@ -1,0 +1,18 @@
+#security #show-security-dialog,
+#logout,
+#claim {
+  color: gold;
+}
+
+#security img {
+  vertical-align: text-bottom;
+}
+
+#security #addAltAuth,
+#claim {
+  color: floralwhite;
+}
+
+.notOwner {
+  transform: rotate(20deg);
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,700" rel="stylesheet" type="text/css" />
+    <title>{{title}}</title>
+    <link id="favicon" href="/favicon.png" rel="icon" type="image/png" />
+    <link rel="stylesheet" href="/security/dialog.css" />
+  </head>
+  <body>
+    <div id="content">
+      <div class="wikiinfo">
+        <div class="table">
+          <div class="vertical">
+            <img id="wiki_logo" src="//{{wikiName}}/favicon.png" width="32px" height="32px" />
+            <h2 id="wiki_name">{{wikiName}}</h2>
+            <h3 id="wiki_hostname">{{wikiHostName}}</h3>
+          </div>
+        </div>
+      </div>
+      <div id="signIn">
+        <div class="table">
+          <div class="vertical">
+            <div class="contents">
+              <div class="scheme_section vcenter" style="width: 249px">
+                <div id="message">
+                  <p>{{authMessage}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span id="footerText">
+        <strong>Federated Wiki.</strong>
+        Sharing ideas through federation.
+        <a href="http://fed.wiki/view/welcome-visitors/view/federated-wiki" target="_blank">Learn more→</a>
+      </span>
+    </footer>
+  </body>
+  <script type="module">
+    // in all probability wikiName was not set, due to the redirect not including the cookie.
+    const cookie = await cookieStore.get('wikiName')
+    const wikiName = cookie ? cookie.value : window.location.host
+    document.querySelector('#wiki_logo').src = `//${wikiName}/favicon.png`
+    document.querySelector('#wiki_name').innerText = wikiName
+
+    document.cookie =
+      'state=loggedIn' + ';domain=.' + window.location.hostname + '; path=/; max-age=60; sameSite=Strict;'
+
+    const targetOrigin = `${window.location.protocol}//${wikiName}`
+    console.log('* target?', targetOrigin)
+    if (window.opener) {
+      console.log('***we have an opener!', window.opener.location)
+      console.log('*', wikiName)
+
+      window.opener.postMessage(
+        {
+          type: 'AUTHENTICATION_RESPONSE',
+          payload: {
+            done: true,
+            timestamp: new Date().toString(),
+          },
+        },
+        targetOrigin,
+      )
+    } else {
+      console.log('we have NO opener')
+    }
+  </script>
+</html>
