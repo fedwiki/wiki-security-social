@@ -45,7 +45,14 @@ export default (log, loga, argv) => {
       if (!err) {
         fs.readFile(thisWiki.idFile, (err, data) => {
           if (err) return cb(err)
-          thisWiki.owner = JSON.parse(data)
+          try {
+            thisWiki.owner = JSON.parse(data)
+          } catch (error) {
+            console.log(`*** OWNER FILE PROBLEM
+*** Owner File: ${thisWiki.idFile}
+*** Error: ${error.message}`)
+            thisWiki.owner = { name: 'unparsable' }
+          }
           thisWiki.ownerName = thisWiki.owner.name
           cb()
         })
@@ -88,10 +95,14 @@ export default (log, loga, argv) => {
       return true
     } else {
       if (req.user) {
-        // we have a session
+        // we have a session - currently there should only be one...
         const idProvider = Object.keys(req.user.social)
-        if (thisWiki.owner[idProvider].id.toString() === req.user.social[idProvider].id.toString()) {
-          return true
+        if (idProvider.some(key => thisWiki.owner.hasOwnProperty(key))) {
+          if (thisWiki.owner[idProvider].id.toString() === req.user.social[idProvider].id.toString()) {
+            return true
+          } else {
+            return false
+          }
         } else {
           return false
         }
