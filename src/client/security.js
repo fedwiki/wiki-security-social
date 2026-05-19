@@ -142,7 +142,7 @@ const update_footer = (ownerName, isAuthenticated) => {
 
   if (ownerName) {
     $('footer > #site-owner').html(
-      `Site Owned by: <span id='site-owner' style='text-transform:capitalize;'>${ownerName}</span>`,
+      `Wiki by: <span id='site-owner'>${ownerName}</span>`,
     )
   }
 
