@@ -1,6 +1,6 @@
 {
   "name": "wiki-security-social",
-  "version": "0.0.1",
+  "version": "0.1.0-rc.0",
   "description": "Social Authentication Security plugin for Federated Wiki.",
   "license": "MIT",
   "author": "Paul Rodwell <paul.rodwell@btinternet.com>",
