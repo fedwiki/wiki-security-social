@@ -1,7 +1,8 @@
 import url from 'node:url'
 import fs from 'node:fs'
 import path from 'node:path'
-import { betterAuth, socialProviders } from 'better-auth'
+import { betterAuth, socialProviders, keycloak } from 'better-auth'
+import { genericOAuth } from 'better-auth/plugins'
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node'
 import { create } from 'express-handlebars'
 
@@ -123,7 +124,7 @@ export default (log, loga, argv) => {
       console.log('admin not defined for', idProvider)
       return false
     }
-    const adminProviders = ['github', 'google', 'twitter', 'oauth2']
+    const adminProviders = ['github', 'google', 'twitter', 'keycloak']
     if (adminProviders.includes(idProvider)) {
       return thisWiki.admin[idProvider].toString() === req.user.social[idProvider].id.toString()
     }
@@ -140,7 +141,9 @@ export default (log, loga, argv) => {
 
     const authSpec = {
       baseURL: `${thisWiki.callbackProtocol}//${thisWiki.callbackHost}/auth`,
+      basePath: '/auth',
       socialProviders: {},
+      plugins: [],
       secret: argv.cookieSecret,
       session: {
         strategy: 'compact',
@@ -172,7 +175,7 @@ export default (log, loga, argv) => {
       trustedOrigins: [`${thisWiki.callbackProtocol}//*.${thisWiki.callbackHost}`],
     }
 
-    // Github
+    // Github - uses social sign-on
     if (['github_clientID', 'github_clientSecret'].every(key => key in argv)) {
       authSpec.socialProviders.github = {
         clientId: argv.github_clientID,
@@ -190,7 +193,7 @@ export default (log, loga, argv) => {
       }
     }
 
-    // Google
+    // Google - uses social sign-on
     if (['google_clientID', 'google_clientSecret'].every(key => key in argv)) {
       authSpec.socialProviders.google = {
         clientId: argv.google_clientID,
@@ -206,6 +209,34 @@ export default (log, loga, argv) => {
           }
         },
       }
+    }
+
+    // oauth2 - uses the Generic OAuth plugin, using discovery url
+    if (['oauth2_clientID', 'oauth2_clientSecret', 'oauth2_discoveryUrl'].every(key => key in argv)) {
+      authSpec.plugins.push(
+        genericOAuth({
+          config: [
+            {
+              providerId: 'oauth2',
+              clientId: argv.oauth2_clientID,
+              clientSecret: argv.oauth2_clientSecret,
+              discoveryUrl: argv.oauth2_discoveryUrl,
+              scopes: ['openid', 'profile', 'email'],
+              mapProfileToUser: async profile => {
+                return {
+                  social: {
+                    oauth2: {
+                      id: profile.sub, // This is the UUID from Keycloak
+                      email: profile.email,
+                      username: profile.display_name,
+                    },
+                  },
+                }
+              },
+            },
+          ],
+        }),
+      )
     }
 
     // add other possible auth providers here.
@@ -243,6 +274,7 @@ export default (log, loga, argv) => {
     app.get('/auth/loginDialog', (req, res) => {
       const cookies = req.cookies
       const schemeButtons = []
+
       // Github
       if (authSpec.socialProviders.github) {
         schemeButtons.push({
@@ -252,7 +284,14 @@ export default (log, loga, argv) => {
       // Google
       if (authSpec.socialProviders.google) {
         schemeButtons.push({
-          button: `<a href='#' onclick='signIn("google")' class='scheme-button github-button'><span>Google</span></a>`,
+          button: `<a href='#' onclick='signIn("google")' class='scheme-button google-button'><span>Google</span></a>`,
+        })
+      }
+
+      // OAuth2
+      if (authSpec.plugins.some(p => p.id === 'generic-oauth' && p.options.config[0].providerId === 'oauth2')) {
+        schemeButtons.push({
+          button: `<a href='#' onclick='signIn("oauth2")' class='scheme-button'><span>OAuth2</span></a>`,
         })
       }
 
@@ -316,7 +355,20 @@ export default (log, loga, argv) => {
       res.send('OK')
     })
 
-    app.all('/auth/*splat', toNodeHandler(auth))
+    app.all('/auth/*splat', async (req, res) => {
+      // the earlier app.user() will have consumed the body,
+      // so we will need to pass it to the handler from the request.
+      if (req.body && req.body.provider) {
+        req.body.providerId = req.body.provider
+      }
+      // Pass the body EXPLICITLY to the handler
+      return (
+        await toNodeHandler(auth)(req, res),
+        {
+          body: req.body,
+        }
+      )
+    })
   }
   return security
 }

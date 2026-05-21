@@ -141,15 +141,12 @@ const update_footer = (ownerName, isAuthenticated) => {
   // console.trace() // how did we get here
 
   if (ownerName) {
-    $('footer > #site-owner').html(
-      `Wiki by: <span id='site-owner'>${ownerName}</span>`,
-    )
+    $('footer > #site-owner').html(`Wiki by: <span id='site-owner'>${ownerName}</span>`)
   }
 
   $('footer > #security').empty()
 
   if (isAuthenticated) {
-    console.log('*** we think we have authenticated!!!')
     const logoutLink = {}
     if (isOwner) {
       logoutLink.title = 'Sign-out'
