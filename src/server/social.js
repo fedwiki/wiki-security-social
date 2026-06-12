@@ -1,7 +1,7 @@
 import url from 'node:url'
 import fs from 'node:fs'
 import path from 'node:path'
-import { betterAuth, socialProviders, keycloak } from 'better-auth'
+import { betterAuth, socialProviders } from 'better-auth'
 import { genericOAuth } from 'better-auth/plugins'
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node'
 import { create } from 'express-handlebars'
@@ -124,7 +124,7 @@ export default (log, loga, argv) => {
       console.log('admin not defined for', idProvider)
       return false
     }
-    const adminProviders = ['github', 'google', 'twitter', 'keycloak']
+    const adminProviders = ['github', 'google', 'twitter', 'oauth2']
     if (adminProviders.includes(idProvider)) {
       return thisWiki.admin[idProvider].toString() === req.user.social[idProvider].id.toString()
     }
