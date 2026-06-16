@@ -2,7 +2,7 @@
 
 ### Login provider set-up
 
-Like the other PassportJS login providers, we'll need a separate "OAuth2 Client"
+Like the other login providers, we'll need a separate "OAuth2 Client"
 (others call it an "app", a "product" etc.) for our Federated Wiki instance.
 
 How to do this varies slightly for each provider.
@@ -21,7 +21,7 @@ In general, you will need to specify:
 ```JSON
 {
   "farm": true,
-  "admin": {"oauth2": "ID VALUE FROM OWNER.JSON FILE OF ADMIN"},
+  "admin": {"oauth2": "UUID OF USER FROM YOUR PROVIDER"},
   "security_type": "social",
   "oauth2_clientID": "CLIENT ID",
   "oauth2_clientSecret": "CLIENT SECRET",
