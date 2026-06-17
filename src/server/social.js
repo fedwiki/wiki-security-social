@@ -226,9 +226,9 @@ export default (log, loga, argv) => {
                 return {
                   social: {
                     oauth2: {
-                      id: profile.sub, // This is the UUID from Keycloak
+                      id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
                       email: profile.email,
-                      username: profile.display_name,
+                      username: profile[argv.oauth2.DisplayNameField] || profile.display_name,
                     },
                   },
                 }
