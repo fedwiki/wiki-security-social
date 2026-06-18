@@ -223,12 +223,13 @@ export default (log, loga, argv) => {
               discoveryUrl: argv.oauth2_discoveryUrl,
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {
+                console.log('oauth2', profile)
                 return {
+                  name: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
                   social: {
                     oauth2: {
                       id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
-                      email: profile.email,
-                      username: profile[argv.oauth2_DisplayNameField] || profile.display_name,
+                      username: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
                     },
                   },
                 }
@@ -332,10 +333,10 @@ export default (log, loga, argv) => {
         res.sendStatus(403)
       } else {
         const user = req.user
+        console.log(user)
         const id = Object.assign(
           {
             name: user.name,
-            email: user.email,
           },
           user.social,
         )

@@ -19,7 +19,7 @@ In general, you will need to specify:
 You might also need to configure which fields Federated Wiki will use for the ID and user name.
 
 - oauth2_IdField -- this will default to `sub`
-- oauth_DisplayNameField -- this will default to `display_name`
+- oauth_DisplayNameField -- this will default to `preferred_username`
 
 ### Examples
 
