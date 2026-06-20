@@ -11,10 +11,15 @@ How to do this varies slightly for each provider.
 
 In general, you will need to specify:
 
-- `oauth2_clientID` -- some systems generate this for you, others allow you to
-  specify it
+- `oauth2_clientID` -- some systems generate this for you, others allow you to specify it
 - `oauth2_clientSecret` -- secure key (keep this secret!)
 - `oauth2_discoveryUrl` -- from your login provider's documentation
+
+You might also need to configure which fields Federated Wiki will use for the ID, display name and user name.
+
+- oauth2_IdField -- this will default to `sub`
+- oauth2_DisplayNameField -- this will default to `display_name`
+- oauth2_UsernameField -- this will default to `preferred_username`
 
 ### Examples
 
@@ -25,6 +30,6 @@ In general, you will need to specify:
   "security_type": "social",
   "oauth2_clientID": "CLIENT ID",
   "oauth2_clientSecret": "CLIENT SECRET",
-  "oauth2_discoveryUrl": "DISCOVERY URL",
+  "oauth2_discoveryUrl": "DISCOVERY URL"
 }
 ```

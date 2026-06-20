@@ -223,12 +223,13 @@ export default (log, loga, argv) => {
               discoveryUrl: argv.oauth2_discoveryUrl,
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {
+                console.log('oauth2', profile)
                 return {
+                  name: profile[argv.oauth2_DisplayNameField] || profile.display_name,
                   social: {
                     oauth2: {
-                      id: profile.sub, // This is the UUID from Keycloak
-                      email: profile.email,
-                      username: profile.display_name,
+                      id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
+                      username: profile[argv.oauth2_UsernameField] || profile.preferred_username,
                     },
                   },
                 }
@@ -278,20 +279,20 @@ export default (log, loga, argv) => {
       // Github
       if (authSpec.socialProviders.github) {
         schemeButtons.push({
-          button: `<a href='#' onclick='signIn("github")' class='scheme-button github-button'><span>Github</span></a>`,
+          button: `<a href='#' onclick='window.resizeBy(0,+500); signIn("github")' class='scheme-button github-button'><span>Github</span></a>`,
         })
       }
       // Google
       if (authSpec.socialProviders.google) {
         schemeButtons.push({
-          button: `<a href='#' onclick='signIn("google")' class='scheme-button google-button'><span>Google</span></a>`,
+          button: `<a href='#' onclick='window.resizeBy(0,+300); signIn("google")' class='scheme-button google-button'><span>Google</span></a>`,
         })
       }
 
       // OAuth2
       if (authSpec.plugins.some(p => p.id === 'generic-oauth' && p.options.config[0].providerId === 'oauth2')) {
         schemeButtons.push({
-          button: `<a href='#' onclick='signIn("oauth2")' class='scheme-button'><span>OAuth2</span></a>`,
+          button: `<a href='#' onclick='window.resizeBy(0,+300); signIn("oauth2")'  class='scheme-button'><span>OAuth2</span></a>`,
         })
       }
 
@@ -332,10 +333,10 @@ export default (log, loga, argv) => {
         res.sendStatus(403)
       } else {
         const user = req.user
+        console.log(user)
         const id = Object.assign(
           {
             name: user.name,
-            email: user.email,
           },
           user.social,
         )
