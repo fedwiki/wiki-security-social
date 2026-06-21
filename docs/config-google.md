@@ -32,3 +32,12 @@ The wiki is configured by adding the `client ID` and `client secret` to the conf
   }
 }
 ```
+
+There is also an optional parameter `auth_Prompt`. The prompt parameter in the OAuth/OIDC authorization code request dictates user interaction behavior. The standard parameters control whether the user can bypass Single Sign-On (SSO) or must explicitly log in or consent.
+
+The specific prompt values you can use are:
+*  `login`: Forces the user to re-enter their credentials on the authorization server, bypassing any existing SSO sessions.
+* `consent`: Forces the authorization server to show the user a consent screen asking to grant permissions to your app, even if they've already approved it.
+* `none`: Instructs the server to perform no interactive UI prompts. If the user isn't already logged in or needs to approve something, it immediately returns an error. Used primarily for silent authentication.
+* `select_account`: Forces the user to choose an account if multiple are logged into the authorization server.
+* `(Omissions)`: Omitting the parameter uses the authorization provider's default behavior (usually showing a login screen only if the user has no active session).

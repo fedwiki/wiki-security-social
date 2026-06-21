@@ -124,7 +124,7 @@ export default (log, loga, argv) => {
       console.log('admin not defined for', idProvider)
       return false
     }
-    const adminProviders = ['github', 'google', 'twitter', 'oauth2']
+    const adminProviders = ['github', 'google', 'oauth2']
     if (adminProviders.includes(idProvider)) {
       return thisWiki.admin[idProvider].toString() === req.user.social[idProvider].id.toString()
     }
@@ -180,6 +180,7 @@ export default (log, loga, argv) => {
       authSpec.socialProviders.github = {
         clientId: argv.github_clientID,
         clientSecret: argv.github_clientSecret,
+        ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
         mapProfileToUser: async profile => {
           return {
             social: {
@@ -198,6 +199,7 @@ export default (log, loga, argv) => {
       authSpec.socialProviders.google = {
         clientId: argv.google_clientID,
         clientSecret: argv.google_clientSecret,
+        ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
         mapProfileToUser: async profile => {
           return {
             social: {
@@ -222,10 +224,11 @@ export default (log, loga, argv) => {
               clientSecret: argv.oauth2_clientSecret,
               discoveryUrl: argv.oauth2_discoveryUrl,
               scopes: ['openid', 'profile', 'email'],
+              ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
               mapProfileToUser: async profile => {
                 console.log('oauth2', profile)
                 return {
-                  name: profile[argv.oauth2_DisplayNameField] || profile.display_name,
+                  name: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
                   social: {
                     oauth2: {
                       id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
