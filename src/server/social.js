@@ -170,7 +170,8 @@ export default (log, loga, argv) => {
           enabled: true,
         },
         cookiePrefix: 'fedwiki',
-        useSecureCookies: true,
+        // Secure cookies require HTTPS; derive from security_useHttps so HTTP can hold a session.
+        useSecureCookies: thisWiki.useHttps,
       },
       trustedOrigins: [`${thisWiki.callbackProtocol}//*.${thisWiki.callbackHost}`],
     }
