@@ -32,3 +32,5 @@ The wiki is configured by adding the `client ID` and `client secret` to the conf
   }
 }
 ```
+
+There is also an optional parameter `auth_Prompt`. The only possible values are `consent` which prompts the user for consent, and `select_account` which prompts the user to select an account.

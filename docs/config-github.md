@@ -50,3 +50,5 @@ The wiki is configured by adding the `client ID` and `client secret` to the wiki
   }
 }
 ```
+
+There is also an optional parameter `auth_Prompt`. This has only one possible value `select_account`, this forces the account picker to appear. The account picker will also appear if the user has multiple accounts signed in.
