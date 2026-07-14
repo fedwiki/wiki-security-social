@@ -21,7 +21,7 @@ export default (log, loga, argv) => {
     admin: argv.admin,
     statusDir: argv.status,
     idFile: argv.id,
-    useHttps: argv.security_useHttps ? true : false,
+    useHttps: argv.security_useHttps ?? true,
     callbackProtocol: argv.security_useHttps ? 'https:' : url.parse(argv.url).protocol,
     providers: [],
   }
