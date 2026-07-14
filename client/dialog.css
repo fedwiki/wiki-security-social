@@ -431,10 +431,6 @@ section > .contents {
   h6 {
     letter-spacing: normal;
   }
-  footer,
-  .persona_intro {
-    display: none;
-  }
   a {
     color: #0095dd;
     text-shadow: none;
@@ -585,34 +581,9 @@ section > .contents {
     border: 1px solid #a50022;
     box-shadow: none;
   }
-  #authentication_email {
-    background-image: url('https://login.persona.org/v/0a9faad451/dialog/i/persona_watermark.png');
-    background-size: auto 100%;
-    background-repeat: no-repeat;
-    background-position: left top;
-    padding-left: 60px;
-  }
   .buttonrow > button,
   .buttonrow > a {
     min-width: 50%;
-  }
-  #authentication_email::-webkit-input-placeholder {
-    color: transparent;
-  }
-  #authentication_email::-webkit-input-placeholder {
-    color: transparent;
-  }
-  #authentication_email::-moz-placeholder {
-    color: transparent;
-  }
-  #authentication_email:-moz-placeholder {
-    color: transparent;
-  }
-  #authentication_email:-ms-input-placeholder {
-    color: transparent;
-  }
-  #authentication_email::input-placeholder {
-    color: transparent;
   }
   section {
     position: fixed;
@@ -783,29 +754,6 @@ section > .contents {
   .error #delay {
     display: none;
   }
-  #emailList {
-    border-bottom: 1px dotted #cbcbcb;
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-  }
-  #emailList > li > label {
-    margin: 0;
-    padding: 8px 0;
-  }
-  #emailList > li > label,
-  #emailList > li:only-child > label.selected {
-    background-image: url('https://login.persona.org/v/77e5d5d4c5/dialog/i/persona_watermark_sm.png');
-    background-repeat: no-repeat;
-    background-position: center left;
-    padding: 4px 0 4px 40px;
-    margin: 5px 0;
-  }
-  #emailList > li > label.selected {
-    background-image: url('https://login.persona.org/v/29d9e089cb/dialog/i/persona_watermark_dark_sm.png');
-  }
-  #emailList > li input[type='radio'] {
-    display: none;
-  }
   #signIn .buttonrow {
     position: absolute;
     left: 0;
@@ -966,36 +914,6 @@ section > .contents {
 .scheme-button span {
   display: inline-block;
   padding: 5px 10px 5px 40px;
-}
-
-/* Icon (persona) */
-.persona-button span:after {
-  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAPCAYAAAA/I0V3AAAA4klEQVR42o2RWaqEMBRE3YaCiDjPwQGcd9CrysLv4wTyoLFD90dxqbp1EgdPRB7Kskznea6Zn/aPoKoqUUrJOI5m4l2QBfSyLHKep1zXZSae3An1fS/7vst931bGkzuhaZrsLVbGkzuheZ7lOI6HyJ2QUkqv6yrbtv0LT+6E7G0UrfBfP3lZlpoXH4ZBmHgn5Pv+KwxDfqp0XQdgJp6c/RsUBIGOokiSJDE/s21bACbe5Ozp0TdAHMdSFIXUdS1N01C2wpObPT36HifwCJzI0iX29Oh7XP0E3CB9L01TzM+i/wePv4ZE5RtAngAAAABJRU5ErkJggg==)
-    10px center no-repeat;
-  content: '';
-  display: block;
-  width: 31px;
-
-  position: absolute;
-  bottom: 0;
-  left: -3px;
-  top: 0;
-  z-index: 10;
-}
-
-/* Icon (twitter) */
-.twitter-button span:after {
-  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAAXNSR0IArs4c6QAAAAlwSFlzAAAuIwAALiMBeKU/dgAAActpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgSW1hZ2VSZWFkeTwveG1wOkNyZWF0b3JUb29sPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KKS7NPQAAAlFJREFUSA3tlT1rlEEQgO+NihI/EFGQdIKNtaSwEFL4C0Qh/gA//oliI9hY2NuIZaxEWxVLEStRu5CYxhjNx935PHs7m33v7j3QUhx4MrOzszO7s3tver1/RZq/PchwOCxrm6YZzspTAusgE8xayPxcjo/kJQ/rBnWumXaVqBXX5a+D3GQ9bg3qCW2CD6AGcSoLxE6xrzB3GTZhBf8HfEewj2OvoSclJzTxAtyGU0bpzxyKVYzvQi2fGTyAx7CU100egMmDeXIReweewckqcVqE7zqE7IaRtcVujK+JCwy/2uPLVXjBomU4ES3DdwmUvZHq9dGifITXGqyxtfEwdJX+p0kCHkEt7xjcA0/xPE8M0NLPY9W1yIVd2pValKpwwVmfQW/BOpzOvotoUdydRJJYp3ad0jpB3S5fkjIPtsoCtsHFdUtMHgUwi2xgfYnRRKuc4HilIPYt2IRoRbQmNFNJHO9l+yU6bRRdckXRopks7cO+Dz/Al1YXY1hEv4WUO3mzDXbrpOMVo7/GfwNb5+/DuPoeGKbxLtqEb+EJKHRq7FWN/Pt/2UUqjD4PvrJPsA1K7NoT/EyeUVuXzMB4Dlqn2M+crWkB+Hy6W2CBX2DBKOa9LUci7NkFqsBzBN+Eh/AKNmCavMHp9ysJ9njrY6pXX3T08juz3s0FWISjYO93wN/Oe1iBpyxwHL/u+j51F+k8Hjs7TNTZzDH0NqzCV5Jrm9wn6z+fzgLGTQgLOwtHsDFQvsrh79JTE5LA/sYXoP6MGO+4z+5bn46uAv/9f9yB3zm4QJRhHIX3AAAAAElFTkSuQmCC)
-    4px center no-repeat;
-  content: '';
-  display: block;
-  width: 31px;
-
-  position: absolute;
-  bottom: 0;
-  left: -3px;
-  top: 0;
-  z-index: 10;
 }
 
 /* Icon (github) */
