@@ -21,7 +21,7 @@ export default (log, loga, argv) => {
     admin: argv.admin,
     statusDir: argv.status,
     idFile: argv.id,
-    useHttps: argv.security_useHttps ? true : false,
+    useHttps: argv.security_useHttps ?? true,
     callbackProtocol: argv.security_useHttps ? 'https:' : url.parse(argv.url).protocol,
     providers: [],
   }
@@ -170,7 +170,8 @@ export default (log, loga, argv) => {
           enabled: true,
         },
         cookiePrefix: 'fedwiki',
-        useSecureCookies: true,
+        // Secure cookies require HTTPS; derive from security_useHttps so HTTP can hold a session.
+        useSecureCookies: thisWiki.useHttps,
       },
       trustedOrigins: [`${thisWiki.callbackProtocol}//*.${thisWiki.callbackHost}`],
     }
