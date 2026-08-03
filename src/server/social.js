@@ -187,7 +187,7 @@ export default (log, loga, argv) => {
       authSpec.socialProviders.github = {
         clientId: argv.github_clientID,
         clientSecret: argv.github_clientSecret,
-        ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
+        prompt: argv.auth_Prompt || 'select_account',
         mapProfileToUser: async profile => {
           return {
             social: {
@@ -212,7 +212,7 @@ export default (log, loga, argv) => {
       authSpec.socialProviders.google = {
         clientId: argv.google_clientID,
         clientSecret: argv.google_clientSecret,
-        ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
+        prompt: argv.auth_Prompt || 'select_account',
         mapProfileToUser: async profile => {
           return {
             social: {
@@ -240,7 +240,7 @@ export default (log, loga, argv) => {
               providerId: 'oauth2',
               clientId: argv.oauth2_clientID,
               clientSecret: argv.oauth2_clientSecret,
-              ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
+              prompt: argv.auth_Prompt || 'login',
               discoveryUrl: argv.oauth2_discoveryUrl,
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {

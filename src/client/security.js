@@ -45,8 +45,7 @@ const handleAuthentication = async () => {
     const result = await openDialog()
     window.isAuthenticated = true
     if (!isClaimed) {
-      console.log('*** wiki not claimed yet.')
-      // add code to claim...
+      claim_wiki()
     } else {
       console.log('*** wiki already claimed')
       location.reload()
@@ -139,6 +138,9 @@ const claim_wiki = () => {
 const update_footer = (ownerName, isAuthenticated) => {
   console.log('*** update_footer', { ownerName, isAuthenticated, settings })
   // console.trace() // how did we get here
+
+  // Never auto-claim from an existing wiki session; claiming always uses the sign-in dialog.
+  if (!isClaimed) isAuthenticated = false
 
   if (ownerName) {
     $('footer > #site-owner').html(`Wiki by: <span id='site-owner'>${ownerName}</span>`)
