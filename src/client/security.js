@@ -45,16 +45,13 @@ const handleAuthentication = async () => {
     const result = await openDialog()
     window.isAuthenticated = true
     if (!isClaimed) {
-      console.log('*** wiki not claimed yet.')
-      // add code to claim...
+      claim_wiki()
     } else {
-      console.log('*** wiki already claimed')
-      location.reload()
-      // if (wiki.lineup.bestTitle() == 'Login Required') {
-      //   location.reload()
-      // } else {
-      //   update_footer(ownerName, true)
-      // }
+      if (wiki.lineup.bestTitle() == 'Login Required') {
+        location.reload()
+      } else {
+        update_footer(ownerName, true)
+      }
     }
   } catch (err) {
     console.log(err)

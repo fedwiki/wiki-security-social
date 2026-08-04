@@ -278,6 +278,76 @@ export default (log, loga, argv) => {
       next()
     })
 
+    // if configured, enforce restricted access to json
+    // see http://ward.asia.wiki.org/login-to-view.html
+    if (argv.restricted) {
+      const allowedToView = req => {
+        if (argv.allowed_domains) {
+          try {
+            const allowed_domains = argv.allowed_domains
+            const have = req.user?.email?.split('@')[1]
+            if (have && allowed_domains.includes(have)) return true
+          } catch (error) {
+            console.log(
+              "argv.allowed_domains exists, but there was an error. Make sure it's value is an array in your config.",
+            )
+          }
+        }
+
+        if (argv.allowed_ids) {
+          try {
+            const allowed_ids = argv.allowed_ids
+            const idProvider = req.user?.social && Object.keys(req.user.social)[0]
+            if (['github', 'oauth2', 'google'].includes(idProvider)) {
+              const id = req.user.social[idProvider].id
+              if (allowed_ids.length === 1 && allowed_ids[0] === '*') return true
+              for (const want of allowed_ids) {
+                if (want == id) return true
+              }
+            }
+          } catch (error) {
+            console.log(
+              "argv.allowed_ids exists, but there was an error. Make sure it's value is an array in your config.",
+            )
+          }
+        }
+
+        return false
+      }
+
+      app.all('/*splat', (req, res, next) => {
+        // don't protect site flag
+        if (req.url === '/favicon.png') return next()
+        if (!/\.(json|html)$/.test(req.url)) return next()
+
+        // prepare to examine remote server's forwarded session
+        res.header('Access-Control-Allow-Origin', req.get('Origin') || '*')
+        res.header('Access-Control-Allow-Credentials', 'true')
+        // protect unclaimed by requiring owner !== ''
+        const owner = thisWiki.owner
+        if ((isAuthorized(req) && owner !== '') || allowedToView(req)) return next()
+
+        const m = req.url.match(/\/(.*)\.html$/)
+        if (m) return res.redirect(`/view/${m[1]}`)
+        if (req.url === '/system/sitemap.json') return res.json(['Login Required'])
+
+        // not happy, explain why these pages can't be viewed
+        const problem =
+          'This is a restricted wiki that requires users to login to view pages. You do not have to be the site owner but you do need to login with a participating email address.'
+        const details = `[${argv.details || 'http://ward.asia.wiki.org/login-to-view.html'} details]`
+        res.status(200).json({
+          title: 'Login Required',
+          story: [
+            {
+              type: 'paragraph',
+              id: '55d44b367ed64875',
+              text: `${problem} ${details}`,
+            },
+          ],
+        })
+      })
+    }
+
     app.get('/auth/client-settings.json', (req, res) => {
       const settings = {
         useHttps: thisWiki.useHttps,
@@ -355,6 +425,11 @@ export default (log, loga, argv) => {
       } else {
         const user = req.user
         console.log(user)
+        // no session yet → Object.assign produces {} and permanently blocks claim
+        if (!user?.social) {
+          console.log('Unable to claim wiki', req.hostname, ' no authenticated social user', user)
+          return res.sendStatus(500)
+        }
         const id = Object.assign(
           {
             name: user.name,
