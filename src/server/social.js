@@ -50,7 +50,15 @@ export default (log, loga, argv) => {
 *** Error: ${error.message}`)
             thisWiki.owner = { name: 'unparsable' }
           }
-          thisWiki.ownerName = thisWiki.owner.name
+          // Treat empty/invalid owner files as unclaimed (e.g. "{}" from a failed claim)
+          const hasProvider = thisWiki.owner && ['github', 'google', 'oauth2'].some(p => thisWiki.owner[p]?.id)
+          if (!thisWiki.owner?.name || !hasProvider) {
+            console.log(`*** OWNER FILE IGNORED (empty or incomplete): ${thisWiki.idFile}`)
+            thisWiki.owner = ''
+            thisWiki.ownerName = ''
+          } else {
+            thisWiki.ownerName = thisWiki.owner.name
+          }
           cb()
         })
       } else {
@@ -245,12 +253,22 @@ export default (log, loga, argv) => {
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {
                 console.log('oauth2', profile)
+                // Support both claim names ("sub") and config style ("token.sub")
+                const profileField = (key, fallback) => {
+                  if (!key) return fallback
+                  if (Object.hasOwn(profile, key)) return profile[key]
+                  if (key.startsWith('token.')) {
+                    const claim = key.slice('token.'.length)
+                    if (Object.hasOwn(profile, claim)) return profile[claim]
+                  }
+                  return fallback
+                }
                 return {
-                  name: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
+                  name: profileField(argv.oauth2_DisplayNameField, profile.preferred_username),
                   social: {
                     oauth2: {
-                      id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
-                      username: profile[argv.oauth2_UsernameField] || profile.preferred_username,
+                      id: profileField(argv.oauth2_IdField, profile.sub),
+                      username: profileField(argv.oauth2_UsernameField, profile.preferred_username),
                     },
                   },
                 }
@@ -277,6 +295,77 @@ export default (log, loga, argv) => {
       }
       next()
     })
+
+    // if configured, enforce restricted access to json
+    // see http://ward.asia.wiki.org/login-to-view.html
+    if (argv.restricted) {
+      const allowedToView = req => {
+        if (argv.allowed_domains) {
+          try {
+            const allowed_domains = argv.allowed_domains
+            // better-auth: email on user; passportjs used google.emails[].value
+            const have = req.user?.email?.split('@')[1]
+            if (have && allowed_domains.includes(have)) return true
+          } catch (error) {
+            console.log(
+              "argv.allowed_domains exists, but there was an error. Make sure it's value is an array in your config.",
+            )
+          }
+        }
+
+        if (argv.allowed_ids) {
+          try {
+            const allowed_ids = argv.allowed_ids
+            const idProvider = req.user?.social && Object.keys(req.user.social)[0]
+            if (['github', 'oauth2', 'google'].includes(idProvider)) {
+              const id = req.user.social[idProvider].id
+              if (allowed_ids.length === 1 && allowed_ids[0] === '*') return true
+              for (const want of allowed_ids) {
+                if (want == id) return true
+              }
+            }
+          } catch (error) {
+            console.log(
+              "argv.allowed_ids exists, but there was an error. Make sure it's value is an array in your config.",
+            )
+          }
+        }
+
+        return false
+      }
+
+      app.all('/*splat', (req, res, next) => {
+        // don't protect site flag
+        if (req.url === '/favicon.png') return next()
+        if (!/\.(json|html)$/.test(req.url)) return next()
+
+        // prepare to examine remote server's forwarded session
+        res.header('Access-Control-Allow-Origin', req.get('Origin') || '*')
+        res.header('Access-Control-Allow-Credentials', 'true')
+        // protect unclaimed by requiring owner !== ''
+        const owner = thisWiki.owner
+        if ((isAuthorized(req) && owner !== '') || allowedToView(req)) return next()
+
+        const m = req.url.match(/\/(.*)\.html$/)
+        if (m) return res.redirect(`/view/${m[1]}`)
+        if (req.url === '/system/sitemap.json') return res.json(['Login Required'])
+
+        // not happy, explain why these pages can't be viewed
+        const problem =
+          'This is a restricted wiki that requires users to login to view pages. You do not have to be the site owner but you do need to login with a participating email address.'
+        const details = `[${argv.details || 'http://ward.asia.wiki.org/login-to-view.html'} details]`
+        res.status(200).json({
+          title: 'Login Required',
+          story: [
+            {
+              type: 'paragraph',
+              id: '55d44b367ed64875',
+              text: `${problem} ${details}`,
+            },
+          ],
+        })
+      })
+    }
 
     app.get('/auth/client-settings.json', (req, res) => {
       const settings = {
@@ -349,27 +438,54 @@ export default (log, loga, argv) => {
     })
 
     app.get('/auth/claim-wiki', (req, res) => {
+      res.set('Cache-Control', 'no-store')
       if (thisWiki.owner) {
         console.log('Claim Request Ignored: Wiki already has owner - ', thisWiki.wikiName)
-        res.sendStatus(403)
-      } else {
-        const user = req.user
-        console.log(user)
-        const id = Object.assign(
-          {
-            name: user.name,
-          },
-          user.social,
-        )
-        setOwner(id, err => {
-          if (err) {
-            console.log('Failed to claim wiki ', req.hostname, ' for ', id)
-            res.sendStatus(500)
-          }
-          updateOwner(getOwner())
-          res.json({ ownerName: id.name })
-        })
+        return res.sendStatus(403)
       }
+
+      const user = req.user
+      if (!user?.social) {
+        console.log('Unable to claim wiki', req.hostname, ' no authenticated social user', user)
+        return res.sendStatus(500)
+      }
+
+      // Build owner id from the signed-in provider (passportjs parity)
+      let id = {}
+      for (const idProvider of Object.keys(user.social)) {
+        const provider = user.social[idProvider]
+        if (!provider?.id) continue
+        if (idProvider === 'oauth2') {
+          id = {
+            name: user.name || provider.username,
+            oauth2: { id: provider.id, username: provider.username },
+          }
+        } else if (idProvider === 'github') {
+          id = {
+            name: user.name || provider.username,
+            github: { id: provider.id, username: provider.username },
+          }
+        } else if (idProvider === 'google') {
+          id = {
+            name: user.name || provider.username,
+            google: { id: provider.id, username: provider.username },
+          }
+        }
+      }
+
+      if (!id.name || !['github', 'google', 'oauth2'].some(p => id[p]?.id)) {
+        console.log('Unable to claim wiki', req.hostname, ' no valid id provided', { user, id })
+        return res.sendStatus(500)
+      }
+
+      setOwner(id, err => {
+        if (err) {
+          console.log('Failed to claim wiki ', req.hostname, ' for ', id)
+          return res.sendStatus(500)
+        }
+        updateOwner(getOwner())
+        res.json({ ownerName: id.name })
+      })
     })
 
     app.get('/logout', async (req, res) => {
