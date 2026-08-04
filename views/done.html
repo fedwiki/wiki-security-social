@@ -63,7 +63,10 @@
             timestamp: new Date().toString(),
           },
         },
-        targetOrigin,
+        // Use '*' instead of targetOrigin: wikiName is often missing after OAuth (SameSite),
+        // and opener may be a farm sibling (e.g. alt.private…) while this page is on the farm host.
+        // Safe because security.js only handles messages whose event.origin matches the dialog host.
+        '*',
       )
     } else {
       console.log('we have NO opener')

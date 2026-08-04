@@ -152,9 +152,11 @@ const update_footer = (ownerName, isAuthenticated) => {
       logoutLink.title = 'Not Owner : Sign-out'
       logoutLink.iconClass = 'notOwner'
     }
-    $('footer > #security').append(
-      `<a href='#' id='logout' class='footer-item' title='${logoutLink.title}'><img  src='/security/lock_open.svg' height=15 width=15 class='${logoutLink.iconClass}'></a>`,
-    )
+    if (isClaimed) {
+      $('footer > #security').append(
+        `<a href='#' id='logout' class='footer-item' title='${logoutLink.title}'><img  src='${isOwner ? '/security/lock_open.svg' : '/security/lock.svg'}' height=18 width=18 class='${logoutLink.iconClass}'${isOwner ? '' : " style='display:inline-block'"}></a>`,
+      )
+    }
     $('footer > #security > #logout').on('click', async e => {
       e.preventDefault()
       await authClient.signOut({
@@ -170,11 +172,13 @@ const update_footer = (ownerName, isAuthenticated) => {
     })
     if (!isClaimed) {
       $('footer > #security').append(
-        `<a href='#' id='claim' class='foot-item' title='Claim this Wiki'><img src='/security/key.svg' height=15 width=15></a>`,
+        `<a href='#' id='claim' class='foot-item' title='Claim this Wiki'><img src='/security/key.svg' height=18 width=18></a>`,
       )
       $('footer > #security > #claim').on('click', e => {
         e.preventDefault()
-        claim_wiki()
+        // Open login dialog (then claim); wikiName cookie tells done.html which site was claimed.
+        document.cookie = `wikiName=${window.location.host} ;domain=${settings.cookieDomain} ;path=/ ;max-age=300 ;sameSite=Strict;`
+        handleAuthentication()
       })
     }
   } else {
@@ -185,7 +189,7 @@ const update_footer = (ownerName, isAuthenticated) => {
       signonTitle = 'Wiki Owner Sign-on'
     }
     $('footer > #security').append(
-      `<a href='#' id='show-security-dialog' class='footer-item' title='${signonTitle}'><img src='/security/lock.svg' height=15 width=15></a>`,
+      `<a href='#' id='show-security-dialog' class='footer-item' title='${signonTitle}'><img src='${isClaimed ? '/security/lock.svg' : '/security/key.svg'}' height=18 width=18></a>`,
     )
     $('footer > #security > #show-security-dialog').on('click', e => {
       e.preventDefault()

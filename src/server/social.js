@@ -168,8 +168,11 @@ export default (log, loga, argv) => {
       advanced: {
         crossSubDomainCookies: {
           enabled: true,
+          // Scope Set-Cookie Domain to wiki_domain so session cookies are shared across this farm only.
+          ...(thisWiki.wikiHost ? { domain: thisWiki.wikiHost } : {}),
         },
-        cookiePrefix: 'fedwiki',
+        // Prefix by wiki_domain so nested farms do not share cookie names/secret.
+        cookiePrefix: `fedwiki-${(thisWiki.wikiHost || url.parse(argv.url).hostname || 'wiki').replace(/[^a-zA-Z0-9]+/g, '-')}`,
         // Secure cookies require HTTPS; derive from security_useHttps so HTTP can hold a session.
         useSecureCookies: thisWiki.useHttps,
       },
@@ -316,8 +319,9 @@ export default (log, loga, argv) => {
       }
 
       app.all('/*splat', (req, res, next) => {
-        // don't protect site flag
+        // don't protect site flag or auth endpoints (needed while logged out)
         if (req.url === '/favicon.png') return next()
+        if (req.url.startsWith('/auth/')) return next()
         if (!/\.(json|html)$/.test(req.url)) return next()
 
         // prepare to examine remote server's forwarded session
@@ -401,6 +405,8 @@ export default (log, loga, argv) => {
     })
 
     app.get('/auth/loginDone', async (req, res) => {
+      // Avoid cached loginDone after sign-out/sign-in.
+      res.set('Cache-Control', 'no-store')
       const session = await auth.api.getSession({
         headers: fromNodeHeaders(req.headers),
       })
