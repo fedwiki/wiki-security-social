@@ -50,7 +50,15 @@ export default (log, loga, argv) => {
 *** Error: ${error.message}`)
             thisWiki.owner = { name: 'unparsable' }
           }
-          thisWiki.ownerName = thisWiki.owner.name
+          // Treat empty/invalid owner files as unclaimed (e.g. "{}" from a failed claim)
+          const hasProvider = thisWiki.owner && ['github', 'google', 'oauth2'].some(p => thisWiki.owner[p]?.id)
+          if (!thisWiki.owner?.name || !hasProvider) {
+            console.log(`*** OWNER FILE IGNORED (empty or incomplete): ${thisWiki.idFile}`)
+            thisWiki.owner = ''
+            thisWiki.ownerName = ''
+          } else {
+            thisWiki.ownerName = thisWiki.owner.name
+          }
           cb()
         })
       } else {
@@ -245,12 +253,22 @@ export default (log, loga, argv) => {
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {
                 console.log('oauth2', profile)
+                // Support both claim names ("sub") and config style ("token.sub")
+                const profileField = (key, fallback) => {
+                  if (!key) return fallback
+                  if (Object.hasOwn(profile, key)) return profile[key]
+                  if (key.startsWith('token.')) {
+                    const claim = key.slice('token.'.length)
+                    if (Object.hasOwn(profile, claim)) return profile[claim]
+                  }
+                  return fallback
+                }
                 return {
-                  name: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
+                  name: profileField(argv.oauth2_DisplayNameField, profile.preferred_username),
                   social: {
                     oauth2: {
-                      id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
-                      username: profile[argv.oauth2_UsernameField] || profile.preferred_username,
+                      id: profileField(argv.oauth2_IdField, profile.sub),
+                      username: profileField(argv.oauth2_UsernameField, profile.preferred_username),
                     },
                   },
                 }
@@ -349,27 +367,54 @@ export default (log, loga, argv) => {
     })
 
     app.get('/auth/claim-wiki', (req, res) => {
+      res.set('Cache-Control', 'no-store')
       if (thisWiki.owner) {
         console.log('Claim Request Ignored: Wiki already has owner - ', thisWiki.wikiName)
-        res.sendStatus(403)
-      } else {
-        const user = req.user
-        console.log(user)
-        const id = Object.assign(
-          {
-            name: user.name,
-          },
-          user.social,
-        )
-        setOwner(id, err => {
-          if (err) {
-            console.log('Failed to claim wiki ', req.hostname, ' for ', id)
-            res.sendStatus(500)
-          }
-          updateOwner(getOwner())
-          res.json({ ownerName: id.name })
-        })
+        return res.sendStatus(403)
       }
+
+      const user = req.user
+      if (!user?.social) {
+        console.log('Unable to claim wiki', req.hostname, ' no authenticated social user', user)
+        return res.sendStatus(500)
+      }
+
+      // Build owner id from the signed-in provider (passportjs parity)
+      let id = {}
+      for (const idProvider of Object.keys(user.social)) {
+        const provider = user.social[idProvider]
+        if (!provider?.id) continue
+        if (idProvider === 'oauth2') {
+          id = {
+            name: user.name || provider.username,
+            oauth2: { id: provider.id, username: provider.username },
+          }
+        } else if (idProvider === 'github') {
+          id = {
+            name: user.name || provider.username,
+            github: { id: provider.id, username: provider.username },
+          }
+        } else if (idProvider === 'google') {
+          id = {
+            name: user.name || provider.username,
+            google: { id: provider.id, username: provider.username },
+          }
+        }
+      }
+
+      if (!id.name || !['github', 'google', 'oauth2'].some(p => id[p]?.id)) {
+        console.log('Unable to claim wiki', req.hostname, ' no valid id provided', { user, id })
+        return res.sendStatus(500)
+      }
+
+      setOwner(id, err => {
+        if (err) {
+          console.log('Failed to claim wiki ', req.hostname, ' for ', id)
+          return res.sendStatus(500)
+        }
+        updateOwner(getOwner())
+        res.json({ ownerName: id.name })
+      })
     })
 
     app.get('/logout', async (req, res) => {

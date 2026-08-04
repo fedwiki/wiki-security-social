@@ -47,14 +47,10 @@ const handleAuthentication = async () => {
     if (!isClaimed) {
       console.log('*** wiki not claimed yet.')
       // add code to claim...
-    } else {
-      console.log('*** wiki already claimed')
+    } else if (wiki.lineup.bestTitle() == 'Login Required') {
       location.reload()
-      // if (wiki.lineup.bestTitle() == 'Login Required') {
-      //   location.reload()
-      // } else {
-      //   update_footer(ownerName, true)
-      // }
+    } else {
+      update_footer(ownerName, true)
     }
   } catch (err) {
     console.log(err)
@@ -113,27 +109,39 @@ const setup = user => {
     })
 }
 
-const claim_wiki = () => {
-  if (!isClaimed) {
-    fetch('/auth/claim-wiki', { method: 'GET', cache: 'no-cache', mode: 'same-origin', credentials: 'include' }).then(
-      response => {
-        if (response.ok) {
-          response.json().then(json => {
-            if (wiki.lineup.bestTitle() == 'Login Required') {
-              location.reload()
-            } else {
-              ownerName = json.ownerName
-              window.isClaimed = true
-              window.isOwner = true
-              update_footer(ownerName, true)
-            }
-          })
-        } else {
-          console.log('Attempt to claim site failed', response)
-        }
-      },
-    )
+const claim_wiki = async () => {
+  if (isClaimed) return
+
+  // Dialog can finish before the session cookie is visible to this window.
+  // Never claim without a social user — that previously wrote owner.json as "{}".
+  let session = await authClient.getSession()
+  if (!session.data?.user?.social) {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    session = await authClient.getSession()
   }
+  if (!session.data?.user?.social) {
+    console.log('Attempt to claim site failed: no social session yet', session)
+    return
+  }
+
+  fetch('/auth/claim-wiki', { method: 'GET', cache: 'no-cache', mode: 'same-origin', credentials: 'include' }).then(
+    response => {
+      if (response.ok) {
+        response.json().then(json => {
+          if (wiki.lineup.bestTitle() == 'Login Required') {
+            location.reload()
+          } else {
+            ownerName = json.ownerName
+            window.isClaimed = true
+            window.isOwner = true
+            update_footer(ownerName, true)
+          }
+        })
+      } else {
+        console.log('Attempt to claim site failed', response)
+      }
+    },
+  )
 }
 
 const update_footer = (ownerName, isAuthenticated) => {
