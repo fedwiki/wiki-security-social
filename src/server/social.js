@@ -246,11 +246,15 @@ export default (log, loga, argv) => {
               mapProfileToUser: async profile => {
                 console.log('oauth2', profile)
                 return {
-                  name: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
+                  name:
+                    profile[argv.oauth2_DisplayNameField?.replace(/^(?:token|profile)\./, '')] ||
+                    profile.preferred_username,
                   social: {
                     oauth2: {
-                      id: profile[argv.oauth2_IdField] || profile.sub, // This is the UUID from Keycloak
-                      username: profile[argv.oauth2_UsernameField] || profile.preferred_username,
+                      id: profile[argv.oauth2_IdField?.replace(/^(?:token|profile)\./, '')] || profile.sub, // This is the UUID from Keycloak
+                      username:
+                        profile[argv.oauth2_UsernameField?.replace(/^(?:token|profile)\./, '')] ||
+                        profile.preferred_username,
                     },
                   },
                 }
