@@ -355,6 +355,10 @@ export default (log, loga, argv) => {
       } else {
         const user = req.user
         console.log(user)
+        if (!user?.social) {
+          console.log('Unable to claim wiki', req.hostname, ' no authenticated social user', user)
+          return res.sendStatus(500)
+        }
         const id = Object.assign(
           {
             name: user.name,
