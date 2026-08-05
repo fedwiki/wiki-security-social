@@ -156,7 +156,7 @@ const update_footer = (ownerName, isAuthenticated) => {
       logoutLink.iconClass = 'notOwner'
     }
     $('footer > #security').append(
-      `<a href='#' id='logout' class='footer-item' title='${logoutLink.title}'><img  src='/security/lock_open.svg' height=15 width=15 class='${logoutLink.iconClass}'></a>`,
+      `<a href='#' id='logout' class='footer-item' title='${logoutLink.title}'><img  src='/security/lock_open.svg' height=18 width=18 class='${logoutLink.iconClass}'></a>`,
     )
     $('footer > #security > #logout').on('click', async e => {
       e.preventDefault()
@@ -173,7 +173,7 @@ const update_footer = (ownerName, isAuthenticated) => {
     })
     if (!isClaimed) {
       $('footer > #security').append(
-        `<a href='#' id='claim' class='foot-item' title='Claim this Wiki'><img src='/security/key.svg' height=15 width=15></a>`,
+        `<a href='#' id='claim' class='foot-item' title='Claim this Wiki'><img src='/security/key.svg' height=18 width=18></a>`,
       )
       $('footer > #security > #claim').on('click', e => {
         e.preventDefault()
@@ -188,7 +188,7 @@ const update_footer = (ownerName, isAuthenticated) => {
       signonTitle = 'Wiki Owner Sign-on'
     }
     $('footer > #security').append(
-      `<a href='#' id='show-security-dialog' class='footer-item' title='${signonTitle}'><img src='/security/lock.svg' height=15 width=15></a>`,
+      `<a href='#' id='show-security-dialog' class='footer-item' title='${signonTitle}'><img src='/security/lock.svg' height=18 width=18></a>`,
     )
     $('footer > #security > #show-security-dialog').on('click', e => {
       e.preventDefault()
