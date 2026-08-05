@@ -6,9 +6,10 @@ const authClient = createAuthClient({
 
 let settings = {}
 
-const handleAuthentication = async () => {
+const handleAuthentication = async ({ wantClaim = false } = {}) => {
   const features = 'width=700,height=375,resizable=1,scrollbars=1'
   const expectOrigin = new URL(settings.dialogURL).origin
+  document.cookie = `wikiName=${window.location.host} ;domain=${settings.cookieDomain} ;path=/ ;max-age=300 ;sameSite=Strict;`
 
   const openDialog = () => {
     return new Promise((resolve, reject) => {
@@ -44,18 +45,8 @@ const handleAuthentication = async () => {
   try {
     const result = await openDialog()
     window.isAuthenticated = true
-    if (!isClaimed) {
-      console.log('*** wiki not claimed yet.')
-      // add code to claim...
-    } else {
-      console.log('*** wiki already claimed')
-      location.reload()
-      // if (wiki.lineup.bestTitle() == 'Login Required') {
-      //   location.reload()
-      // } else {
-      //   update_footer(ownerName, true)
-      // }
-    }
+    if (!isClaimed && wantClaim) claim_wiki()
+    else location.reload()
   } catch (err) {
     console.log(err)
   }
@@ -177,7 +168,7 @@ const update_footer = (ownerName, isAuthenticated) => {
       )
       $('footer > #security > #claim').on('click', e => {
         e.preventDefault()
-        claim_wiki()
+        handleAuthentication({ wantClaim: true })
       })
     }
   } else {
@@ -192,7 +183,6 @@ const update_footer = (ownerName, isAuthenticated) => {
     )
     $('footer > #security > #show-security-dialog').on('click', e => {
       e.preventDefault()
-      document.cookie = `wikiName=${window.location.host} ;domain=${settings.cookieDomain} ;path=/ ;max-age=300 ;sameSite=Strict;`
       handleAuthentication()
     })
   }
