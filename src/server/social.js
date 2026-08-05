@@ -168,8 +168,9 @@ export default (log, loga, argv) => {
       advanced: {
         crossSubDomainCookies: {
           enabled: true,
+          ...(thisWiki.wikiHost ? { domain: thisWiki.wikiHost } : {}),
         },
-        cookiePrefix: 'fedwiki',
+        cookiePrefix: `fedwiki-${(thisWiki.wikiHost || url.parse(argv.url).hostname || 'wiki').replace(/[^a-zA-Z0-9]+/g, '-')}`,
         // Secure cookies require HTTPS; derive from security_useHttps so HTTP can hold a session.
         useSecureCookies: thisWiki.useHttps,
       },
