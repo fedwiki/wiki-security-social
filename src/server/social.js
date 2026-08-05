@@ -170,7 +170,7 @@ export default (log, loga, argv) => {
           enabled: true,
           ...(thisWiki.wikiHost ? { domain: thisWiki.wikiHost } : {}),
         },
-        cookiePrefix: `fedwiki-${(thisWiki.wikiHost || url.parse(argv.url).hostname || 'wiki').replace(/[^a-zA-Z0-9]+/g, '-')}`,
+        cookiePrefix: `fedwiki-${(thisWiki.wikiHost || url.parse(argv.url).hostname).replace(/[^a-zA-Z0-9]+/g, '-')}`,
         // Secure cookies require HTTPS; derive from security_useHttps so HTTP can hold a session.
         useSecureCookies: thisWiki.useHttps,
       },
