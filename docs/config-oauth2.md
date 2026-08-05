@@ -34,13 +34,11 @@ You might also need to configure which fields Federated Wiki will use for the ID
 }
 ```
 
-There is also an optional parameter `auth_Prompt`. The prompt parameter in the OAuth/OIDC authorization code request dictates user interaction behavior. The standard parameters control whether the user can bypass Single Sign-On (SSO) or must explicitly log in or consent.
+There is also an optional parameter `auth_Prompt`. It sets the OAuth/OIDC `prompt` on the authorization request:
 
-The specific prompt values you can use are:
+- `login`: Forces the user to re-enter credentials, bypassing any existing SSO session.
+- `consent`: Forces a consent screen even if the app was already approved.
+- `none`: No interactive UI; if the user is not already signed in (or must approve something), the IdP returns an error.
+- `select_account`: Forces an account chooser when multiple accounts are signed in.
 
-- `login`: Forces the user to re-enter their credentials on the authorization server, bypassing any existing SSO sessions.
-- `consent`: Forces the authorization server to show the user a consent screen asking to grant permissions to your app, even if they've already approved it.
-- `none`: Instructs the server to perform no interactive UI prompts. If the user isn't already logged in or needs to approve something, it immediately returns an error. Used primarily for silent authentication.
-- `select_account`: Forces the user to choose an account if multiple are logged into the authorization server.
-
-Omitting the parameter uses the authorization provider's default behavior (usually showing a login screen only if the user has no active session).
+If `auth_Prompt` is omitted, the plugin sends `login`.
