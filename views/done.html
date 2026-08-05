@@ -52,7 +52,7 @@
     const targetOrigin = `${window.location.protocol}//${wikiName}`
     console.log('* target?', targetOrigin)
     if (window.opener) {
-      console.log('***we have an opener!', window.opener.location)
+      console.log('***we have an opener!')
       console.log('*', wikiName)
 
       window.opener.postMessage(
@@ -63,7 +63,7 @@
             timestamp: new Date().toString(),
           },
         },
-        targetOrigin,
+        '*',
       )
     } else {
       console.log('we have NO opener')
