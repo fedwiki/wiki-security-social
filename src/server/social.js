@@ -331,6 +331,7 @@ export default (log, loga, argv) => {
     })
 
     app.get('/auth/loginDone', async (req, res) => {
+      res.set('Cache-Control', 'no-store')
       const session = await auth.api.getSession({
         headers: fromNodeHeaders(req.headers),
       })
