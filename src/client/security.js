@@ -102,8 +102,9 @@ const setup = user => {
       // console.log('client-settings', json)
       window.isOwner = json.isOwner
       settings = json
-      const dialogHost = settings.wikiHost ? settings.wikiHost : window.location.host
-      settings.cookieDomain = dialogHost
+      const baseHost = settings.wikiHost ? settings.wikiHost : window.location.hostname
+      settings.cookieDomain = baseHost
+      const dialogHost = window.location.port ? `${baseHost}:${window.location.port}` : baseHost
       const dialogProtocol = settings.useHttps ? 'https:' : window.location.protocol
       settings.dialogURL = ''.concat(dialogProtocol, '//', dialogHost, '/auth/loginDialog')
       update_footer(ownerName, isAuthenticated)
