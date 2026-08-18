@@ -47,14 +47,14 @@ const handleAuthentication = async () => {
     if (!isClaimed) {
       console.log('*** wiki not claimed yet.')
       // add code to claim...
+      update_footer(ownerName, true)
     } else {
       console.log('*** wiki already claimed')
-      location.reload()
-      // if (wiki.lineup.bestTitle() == 'Login Required') {
-      //   location.reload()
-      // } else {
-      //   update_footer(ownerName, true)
-      // }
+      if (wiki.lineup.bestTitle() == 'Login Required') {
+        location.reload()
+      } else {
+        update_footer(ownerName, true)
+      }
     }
   } catch (err) {
     console.log(err)
@@ -166,8 +166,9 @@ const update_footer = (ownerName, isAuthenticated) => {
           onSuccess: () => {
             // do we need to send message to server??? don't think so...
             // set state cookie so it can be reflected in any other windows for this wiki domain.
+            window.isAuthenticated = false
             document.cookie = `state=loggedOut ;domain=.${settings.cookieDomain} ;path=/; max-age=60 ;sameSite=Strict;`
-            location.reload()
+            update_footer(ownerName, false)
           },
         },
       })
