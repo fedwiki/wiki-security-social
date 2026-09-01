@@ -29,7 +29,7 @@
     "prettier": "^3.9.5"
   },
   "dependencies": {
-    "better-auth": "^1.6.19",
+    "better-auth": "1.6.x",
     "express-handlebars": "^9.0.1"
   }
 }
