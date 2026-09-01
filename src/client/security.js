@@ -184,7 +184,7 @@ const update_footer = (ownerName, isAuthenticated) => {
   } else {
     let signonTitle
     if (!isClaimed) {
-      signonTitle = 'Claim this Wiki'
+      signonTitle = 'Sign-on to Claim Wiki'
     } else {
       signonTitle = 'Wiki Owner Sign-on'
     }
