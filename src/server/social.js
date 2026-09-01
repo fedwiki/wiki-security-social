@@ -244,7 +244,6 @@ export default (log, loga, argv) => {
               discoveryUrl: argv.oauth2_discoveryUrl,
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {
-                console.log('oauth2', profile)
                 return {
                   name: profile[argv.oauth2_DisplayNameField] || profile.preferred_username,
                   social: {
@@ -348,13 +347,88 @@ export default (log, loga, argv) => {
         .then(rendered => res.send(rendered))
     })
 
+    // if configured, enforce restricted access to json
+    // see http://ward.asia.wiki.org/login-to-view.html
+    if (argv.restricted) {
+      const allowedToView = req => {
+        if (argv.allowed_domains) {
+          if (Array.isArray(argv.allowed_domains)) {
+            const userDomain = req.user.email?.split('@')[1]?.toLowerCase()
+            if (userDomain) {
+              if (argv.allowed_domains.includes(userDomain)) return true
+            }
+          } else {
+            console.warn('argv.allowed_domains exists, but its value is not an array.')
+          }
+        }
+
+        if (argv.allowed_ids) {
+          if (Array.isArray(argv.allowed_ids)) {
+            const isWildcard = argv.allowed_ids.length === 1 && argv.allowed_ids[0] === '*'
+            const idProvider = Object.keys(req.user?.social ?? {})[0]
+            if (idProvider) {
+              if (isWildcard || argv.allowed_ids.map(String).includes(String(req.user.social[idProvider].id)))
+                return true
+            }
+          } else {
+            console.log('argv.allowed_ids exists, but its value is not an array.')
+          }
+        }
+
+        return false
+      }
+
+      app.all('*splat', (req, res, next) => {
+        // some extensions are protected from prying eyes
+        const protectedExt = ['json', 'html']
+        if (protectedExt.every(ext => !req.path.endsWith(ext))) {
+          // not json or html
+          if (!req.path.startsWith('/asset') && (req.path !== '/auth/claim-wiki' || allowedToView(req))) {
+            // and also not an asset and if claiming the user is allowed.
+            return next()
+          }
+        }
+
+        res.header('Access-Control-Allow-Origin', req.get('Origin') || '*')
+        res.header('Access-Control-Allow-Credentials', 'true')
+        // are we either are the owner, or allowed to view this wiki.
+        if ((isAuthorized(req) && thisWiki.owner !== '') || allowedToView(req)) {
+          return next()
+        }
+
+        if (req.path.endsWith('.html')) {
+          return res.redirect(`/view${req.path.slice(0, -5)}`)
+        }
+        if (['/system/sitemap.json', '/system/site-index.json'].includes(req.path)) {
+          return res.json({})
+        }
+
+        const problem =
+          'This is a restricted wiki requires users to login to view pages. You do not have to be the site owner but you do need to login with a participating email address.'
+        let details = `[${argv.details || 'http://ward.asia.wiki.org/login-to-view.html'} details]`
+        return res.status(200).json({
+          title: 'Login Required',
+          story: [
+            {
+              type: 'paragraph',
+              id: '55d44b367ed64875',
+              text: `${problem} ${details}`,
+            },
+          ],
+        })
+      })
+    }
+
     app.get('/auth/claim-wiki', (req, res) => {
       if (thisWiki.owner) {
         console.log('Claim Request Ignored: Wiki already has owner - ', thisWiki.wikiName)
         res.sendStatus(403)
       } else {
         const user = req.user
-        console.log(user)
+        if (!user?.social) {
+          console.log('Claim Request Ignored: User not authenticated - ', this.wikiName)
+          res.sendStatus(401)
+        }
         const id = Object.assign(
           {
             name: user.name,
