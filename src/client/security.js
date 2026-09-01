@@ -174,7 +174,7 @@ const update_footer = (ownerName, isAuthenticated) => {
     })
     if (!isClaimed) {
       $('footer > #security').append(
-        `<a href='#' id='claim' class='foot-item' title='Claim this Wiki'><img src='/security/key.svg' height=15 width=15></a>`,
+        `<a href='#' id='claim' class='footer-item' title='Claim this Wiki'><img src='/security/key.svg' height=15 width=15></a>`,
       )
       $('footer > #security > #claim').on('click', e => {
         e.preventDefault()
