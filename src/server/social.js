@@ -233,6 +233,7 @@ export default (log, loga, argv) => {
           argv.auth_Prompt = null
         }
       }
+      authSpec.account = { storeAccountCookie: false }
       authSpec.plugins.push(
         genericOAuth({
           config: [
