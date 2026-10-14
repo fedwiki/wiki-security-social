@@ -243,6 +243,7 @@ export default (log, loga, argv) => {
               clientSecret: argv.oauth2_clientSecret,
               ...(argv.auth_Prompt ? { prompt: argv.auth_Prompt } : {}),
               discoveryUrl: argv.oauth2_discoveryUrl,
+              disableProviderLogout: true,
               scopes: ['openid', 'profile', 'email'],
               mapProfileToUser: async profile => {
                 return {
