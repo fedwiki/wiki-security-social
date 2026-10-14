@@ -193,7 +193,7 @@ const update_footer = (ownerName, isAuthenticated) => {
     )
     $('footer > #security > #show-security-dialog').on('click', e => {
       e.preventDefault()
-      document.cookie = `wikiName=${window.location.host} ;domain=${settings.cookieDomain} ;path=/ ;max-age=300 ;sameSite=Strict;`
+      document.cookie = `wikiName=${window.location.host}; domain=.${settings.cookieDomain}; path=/; max-age=300; sameSite=Strict;`
       handleAuthentication()
     })
   }
