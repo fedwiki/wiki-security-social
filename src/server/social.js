@@ -429,7 +429,7 @@ export default (log, loga, argv) => {
         const user = req.user
         if (!user?.social) {
           console.log('Claim Request Ignored: User not authenticated - ', this.wikiName)
-          res.sendStatus(401)
+          return res.sendStatus(401)
         }
         const id = Object.assign(
           {
